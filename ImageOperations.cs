@@ -24,11 +24,6 @@ namespace ImageTemplate
         public double red, green, blue;
     }
 
-    public struct Pixel
-    {
-        public int index;
-        public byte weight;
-    }
     public struct Edge : IComparable<Edge>
     {
         public int from;
@@ -37,8 +32,6 @@ namespace ImageTemplate
 
         public int CompareTo(Edge other) => weight.CompareTo(other.weight);
     }
-
-
     /// <summary>
     /// Library of static functions that deal with images
     /// </summary>
@@ -49,16 +42,7 @@ namespace ImageTemplate
         /// </summary>
         /// <param name="ImagePath">Image file path</param>
         /// <returns>2D array of colors</returns>
-        /// 
-
-        static List<Pixel>[] RedAdjacencyList;
-        static List<Pixel>[] GreenAdjacencyList;
-        static List<Pixel>[] BlueAdjacencyList;
         public static DisjointSet regions;
-
-        static Dictionary<int, int> internalDifferenceCache = new Dictionary<int, int>();
-
-
         public static RGBPixel[,] OpenImage(string ImagePath)
         {
             Bitmap original_bm = new Bitmap(ImagePath);
@@ -270,307 +254,152 @@ namespace ImageTemplate
             return Filtered;
         }
 
-        public static void GraphRepresentation(RGBPixel[,] image)
+        public static void OptimizedImageSegmentation(RGBPixel[,] image, double k)
         {
+            int height = image.GetLength(0);
+            int width = image.GetLength(1);
 
+            // Create task list for parallel execution
+            var segmentTasks = new Task<DisjointSet>[3];
 
-            int height = GetHeight(image);
-            int width = GetWidth(image);
+            segmentTasks[0] = Task.Run(() => SegmentSingleChannel(image, height, width, k, 'R'));
+            segmentTasks[1] = Task.Run(() => SegmentSingleChannel(image, height, width, k, 'G'));
+            segmentTasks[2] = Task.Run(() => SegmentSingleChannel(image, height, width, k, 'B'));
+
+            // Wait for all channels to complete
+            Task.WaitAll(segmentTasks);
+
+            // Intersect results
+            IntersectSegments(segmentTasks[0].Result,
+                             segmentTasks[1].Result,
+                             segmentTasks[2].Result,
+                             height, width);
+        }
+        private static DisjointSet SegmentSingleChannel(RGBPixel[,] image, int height, int width, double k, char channel)
+        {
             int size = height * width;
+            var allEdges = BuildAllEdges(image, height, width, channel);
+            allEdges.Sort();
 
-            //for (int y = 0; y < height; y++)
-            //{
-            //    for (int x = 0; x < width; x++)
-            //    {
-            //        MessageBox.Show(image[y, x].red.ToString());
-            //    }
-            //}
-            regions = new DisjointSet(size);
+            var ds = new DisjointSetWithInternalDiff(size);
 
-            RedAdjacencyList = new List<Pixel>[size];
-            GreenAdjacencyList = new List<Pixel>[size];
-            BlueAdjacencyList = new List<Pixel>[size];
-
-            Parallel.For(0, size, i =>
+            foreach (var edge in allEdges)
             {
-                RedAdjacencyList[i] = new List<Pixel>(8);
-                GreenAdjacencyList[i] = new List<Pixel>(8);
-                BlueAdjacencyList[i] = new List<Pixel>(8);
-            });
+                int root1 = ds.Find(edge.from);
+                int root2 = ds.Find(edge.to);
 
-            //Parallel.For(0, height, y =>
-            //{
+                if (root1 != root2)
+                {
+                    double threshold1 = ds.InternalDiff[root1] + k / ds.GetSize(root1);
+                    double threshold2 = ds.InternalDiff[root2] + k / ds.GetSize(root2);
+
+                    if (edge.weight <= Math.Min(threshold1, threshold2))
+                    {
+                        ds.Union(root1, root2, edge.weight);
+                    }
+                }
+            }
+            return ds;
+        }
+        private static List<Edge> BuildAllEdges(RGBPixel[,] image, int height, int width, char channel)
+        {
+            List<Edge> edges = new List<Edge>(height * width * 8);
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int currentIndex = y * width + x;
-                    for (int dy = -1; dy <= 1; dy++)
+                    int current = y * width + x;
+                    byte currentValue = GetChannelValue(image[y, x], channel);
+
+                    if (x < width - 1)
                     {
-                        for (int dx = -1; dx <= 1; dx++)
+                        // Right neighbor (E)
+                        byte rightValue = GetChannelValue(image[y, x + 1], channel);
+                        edges.Add(new Edge { from = current, to = y * width + (x + 1), weight = (byte)Math.Abs(currentValue - rightValue) });
+
+                        // Bottom-right neighbor (SE)
+                        if (y < height - 1)
                         {
-                            if (dx == 0 && dy == 0) continue;
-
-                            int nx = x + dx;
-                            int ny = y + dy;
-
-                            if (nx >= 0 && nx < width && ny >= 0 && ny < height)
-                            {
-                                int neighborIndex = ny * width + nx;
-                                if (neighborIndex > currentIndex)
-                                {
-                                    byte redWeight = (byte)Math.Abs(image[y, x].red - image[ny, nx].red);
-                                    byte greenWeight = (byte)Math.Abs(image[y, x].green - image[ny, nx].green);
-                                    byte blueWeight = (byte)Math.Abs(image[y, x].blue - image[ny, nx].blue);
-
-                                    RedAdjacencyList[currentIndex].Add(new Pixel { index = neighborIndex, weight = redWeight });
-                                    GreenAdjacencyList[currentIndex].Add(new Pixel { index = neighborIndex, weight = greenWeight });
-                                    BlueAdjacencyList[currentIndex].Add(new Pixel { index = neighborIndex, weight = blueWeight });
-
-                                }
-                            }
+                            byte bottomRightValue = GetChannelValue(image[y + 1, x + 1], channel);
+                            edges.Add(new Edge { from = current, to = (y + 1) * width + (x + 1), weight = (byte)Math.Abs(currentValue - bottomRightValue) });
                         }
                     }
-                }
-            };
-        }
 
-        public static void ImageSegmentation(RGBPixel[,] image, double k)
-        {
-            int height = GetHeight(image);
-            int width = GetWidth(image);
-            int size = height * width;
-
-            GraphRepresentation(image);
-            MessageBox.Show("GraphRepresentation done");
-
-            // Process each channel in parallel
-            var tasks = new Task<DisjointSet>[3];
-            tasks[0] = Task.Run(() => SegmentSingleChannel(RedAdjacencyList, size, k));
-            tasks[1] = Task.Run(() => SegmentSingleChannel(GreenAdjacencyList, size, k));
-            tasks[2] = Task.Run(() => SegmentSingleChannel(BlueAdjacencyList, size, k));
-            Task.WaitAll(tasks);
-
-            DisjointSet redRegions = tasks[0].Result;
-            DisjointSet greenRegions = tasks[1].Result;
-            DisjointSet blueRegions = tasks[2].Result;
-
-            MessageBox.Show("Segment Channels done");
-
-            // Combine results
-            regions = new DisjointSet(size);
-            var combinedRegionsMap = new Dictionary<string, (int id, int size)>();
-            int currentCombinedRegion = 0;
-
-            // First pass: count occurrences of each region combination
-            var regionCounts = new Dictionary<string, int>();
-            for (int i = 0; i < size; i++)
-            {
-                string regionKey = $"{redRegions.Find(i)}_{greenRegions.Find(i)}_{blueRegions.Find(i)}";
-                if (!regionCounts.ContainsKey(regionKey))
-                {
-                    regionCounts[regionKey] = 0;
-                }
-                regionCounts[regionKey]++;
-            }
-
-            // Second pass: assign regions with proper sizes
-            for (int i = 0; i < size; i++)
-            {
-                string regionKey = $"{redRegions.Find(i)}_{greenRegions.Find(i)}_{blueRegions.Find(i)}";
-
-                if (!combinedRegionsMap.TryGetValue(regionKey, out var regionInfo))
-                {
-                    // Get the size from our counting pass
-                    int combinedRegionSize = regionCounts[regionKey];
-                    regionInfo = (currentCombinedRegion++, combinedRegionSize);
-                    combinedRegionsMap[regionKey] = regionInfo;
-                }
-
-                regions.SetParentAndSize(i, regionInfo.id, regionInfo.size);
-            }
-        }
-
-        //private static DisjointSet SegmentSingleChannel(List<Pixel>[] adjacencyList, int size, double k)
-        //{
-        //    DisjointSet channelRegions = new DisjointSet(size);
-
-        //    var allEdges = new List<Edge>();
-        //    for (int i = 0; i < size; i++)
-        //    {
-        //        foreach (var pixel in adjacencyList[i])
-        //        {
-        //            allEdges.Add(new Edge { from = i, to = pixel.index, weight = pixel.weight });
-        //        }
-        //    }
-        //    allEdges.Sort();
-
-        //    foreach (var edge in allEdges)
-        //    {
-        //        int root1 = channelRegions.Find(edge.from);
-        //        int root2 = channelRegions.Find(edge.to);
-
-        //        if (root1 != root2)
-        //        {
-        //            int componentDiff = GetComponentDifference(adjacencyList, channelRegions, root1, root2);
-        //            if (componentDiff == int.MaxValue)
-        //                continue;
-
-        //            // Calculate internal differences on demand
-        //            int intDiff1 = GetInternalDifference(adjacencyList, channelRegions, root1);
-        //            int intDiff2 = GetInternalDifference(adjacencyList, channelRegions, root2);
-
-        //            double minInternal = Math.Min(
-        //                intDiff1 + (k / channelRegions.GetSize(root1)),
-        //                intDiff2 + (k / channelRegions.GetSize(root2))
-        //            );
-
-        //            if (componentDiff <= minInternal)
-        //            {
-        //                channelRegions.Union(root1, root2);
-        //            }
-        //        }
-        //    }
-
-        //    return channelRegions;
-        //}
-
-        private static DisjointSet SegmentSingleChannel(List<Pixel>[] adjacencyList, int size, double k)
-        {
-            DisjointSet channelRegions = new DisjointSet(size);
-
-            // Process each pixel
-            for (int i = 0; i < size; i++)
-            {
-                // Check all neighboring pixels
-                foreach (var neighbor in adjacencyList[i])
-                {
-                    int j = neighbor.index;
-                    int root1 = channelRegions.Find(i);
-                    int root2 = channelRegions.Find(j);
-
-                    if (root1 != root2)
+                    if (y < height - 1)
                     {
-                        // Get component difference (edge weight)
-                        // int componentDiff = neighbor.weight;
-                        int componentDiff = GetComponentDifference(adjacencyList, channelRegions, root1, root2);
-                        // Calculate internal differences
-                        int intDiff1 = GetInternalDifference(adjacencyList, channelRegions, root1);
-                        int intDiff2 = GetInternalDifference(adjacencyList, channelRegions, root2);
+                        // Bottom neighbor (S)
+                        byte bottomValue = GetChannelValue(image[y + 1, x], channel);
+                        edges.Add(new Edge { from = current, to = (y + 1) * width + x, weight = (byte)Math.Abs(currentValue - bottomValue) });
 
-                        // Calculate merge thresholds
-                        double threshold1 = intDiff1 + (k / channelRegions.GetSize(root1));
-                        double threshold2 = intDiff2 + (k / channelRegions.GetSize(root2));
-
-                        // Merge condition
-                        if (componentDiff <= Math.Min(threshold1, threshold2))
+                        // Bottom-left neighbor (SW)
+                        if (x > 0)
                         {
-                            channelRegions.Union(root1, root2);
+                            byte bottomLeftValue = GetChannelValue(image[y + 1, x - 1], channel);
+                            edges.Add(new Edge { from = current, to = (y + 1) * width + (x - 1), weight = (byte)Math.Abs(currentValue - bottomLeftValue) });
                         }
                     }
                 }
             }
 
-            return channelRegions;
+            return edges;
         }
-        //private static int GetComponentDifference(List<Pixel>[] adjacencyList, DisjointSet regions, int c1, int c2)
-        //{
-        //    int minWeight = int.MaxValue;
 
-        //    // Optimized: only check one direction since edges are bidirectional
-        //    var c1Pixels = new List<int>();
-        //    for (int i = 0; i < regions.Length; i++)
-        //        if (regions.Find(i) == c1)
-        //            c1Pixels.Add(i);
-
-        //    foreach (int pixel in c1Pixels)
-        //    {
-        //        foreach (var neighbor in adjacencyList[pixel])
-        //        {
-        //            if (regions.Find(neighbor.index) == c2)
-        //            {
-        //                minWeight = Math.Min(minWeight, neighbor.weight);
-        //            }
-        //        }
-        //    }
-
-        //    return minWeight == int.MaxValue ? int.MaxValue : minWeight;
-        //}
-
-
-        private static int GetComponentDifference(List<Pixel>[] adjacencyList, DisjointSet regions, int c1, int c2)
+        private static byte GetChannelValue(RGBPixel pixel, char channel)
         {
-            int minWeight = int.MaxValue;
-
-            // Just check direct connections between the components
-            for (int i = 0; i < regions.Length; i++)
+            byte v = 0;
+            switch(channel)
             {
-                if (regions.Find(i) == c1)
-                {
-                    foreach (var neighbor in adjacencyList[i])
-                    {
-                        if (regions.Find(neighbor.index) == c2)
-                        {
-                            minWeight = Math.Min(minWeight, neighbor.weight);
-                        }
-                    }
-                }
+                case 'R': v = pixel.red;
+                    break;
+                case 'G': v = pixel.green;
+                    break;
+                case 'B': v = pixel.blue;
+                    break;
             }
-
-            return minWeight;
+            return v;
         }
-        private static int GetInternalDifference(List<Pixel>[] adjacencyList, DisjointSet regions, int componentRoot)
+
+        private static void IntersectSegments(DisjointSet red, DisjointSet green, DisjointSet blue, int height, int width)
         {
-            var componentPixels = new List<int>();
-            for (int i = 0; i < regions.Length; i++)
+            int size = width * height;
+            regions = new DisjointSet(size);  // Use base DisjointSet here
+
+            // Dictionary to map (R,G,B) combinations to representative nodes
+            var componentMap = new Dictionary<(int, int, int), int>();
+            var componentSizes = new Dictionary<int, int>();
+
+            for (int i = 0; i < size; i++)
             {
-                if (regions.Find(i) == componentRoot)
-                    componentPixels.Add(i);
-            }
+                var key = (red.Find(i), green.Find(i), blue.Find(i));
 
-            //MessageBox.Show(componentPixels.Count.ToString());
-            if (componentPixels.Count <= 1)
-                return 0;
-
-            // Optimized MST calculation
-            int maxEdgeWeight = 0;
-            var tempDS = new DisjointSet(regions.Length);
-            var edges = new List<Edge>();
-
-            foreach (int pixel in componentPixels)
-            {
-                foreach (var neighbor in adjacencyList[pixel])
+                if (!componentMap.TryGetValue(key, out int representative))
                 {
-                    if (componentPixels.Contains(neighbor.index))
-                    {
-                        edges.Add(new Edge { from = pixel, to = neighbor.index, weight = neighbor.weight });
-                    }
+                    // New component found
+                    representative = i;  // Use current pixel as representative
+                    componentMap[key] = representative;
+                    componentSizes[representative] = 1;
+                }
+                else
+                {
+                    // Union with existing component
+                    regions.Union(i, representative);
+                    int root = regions.Find(representative);
+                    regions.SetParentAndSize(root, root, regions.GetSize(root) + 1);
+                    componentSizes[representative]++;
                 }
             }
 
-            edges.Sort();
-
-            foreach (var edge in edges)
-            {
-                int root1 = tempDS.Find(edge.from);
-                int root2 = tempDS.Find(edge.to);
-
-                if (root1 != root2)
-                {
-                    tempDS.Union(root1, root2);
-                    maxEdgeWeight = Math.Max(maxEdgeWeight, edge.weight);
-                    if (tempDS.GetSize(root1) == componentPixels.Count)
-                        break;
-                }
-            }
-
-            return maxEdgeWeight;
+            //// Update sizes in the disjoint set
+            //foreach (var kvp in componentSizes)
+            //{
+            //    regions.SetParentAndSize(kvp.Key, kvp.Key, kvp.Value);
+            //}
         }
-
         public static (int segmentCount, List<int> segmentSizes) GetSegmentationResults(RGBPixel[,] image, double k)
         {
-            ImageSegmentation(image, k);
-            Dictionary<int, int> rootCounts = new Dictionary<int, int>();
+            OptimizedImageSegmentation(image, k);
+            var rootCounts = new Dictionary<int, int>();
             int totalPixels = regions.Length;
 
             for (int i = 0; i < totalPixels; i++)
@@ -584,5 +413,4 @@ namespace ImageTemplate
             return (rootCounts.Count, sizes);
         }
     }
-
 }

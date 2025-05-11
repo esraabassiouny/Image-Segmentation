@@ -43,11 +43,11 @@ namespace ImageTemplate
                 MessageBox.Show("Starting image processing...", "Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 // Apply Gaussian filter
-                var processedImage = await Task.Run(() => ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma));
-                ImageMatrix = processedImage;
-                ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
+                //var processedImage = await Task.Run(() => ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma));
+                //ImageMatrix = processedImage;
+                // ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 
-                MessageBox.Show("Gaussian smoothing completed. Starting segmentation...", "Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show("Gaussian smoothing completed. Starting segmentation...", "Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 // Perform segmentation and get results
                 var (segmentCount, segmentSizes) = await Task.Run(() => ImageOperations.GetSegmentationResults(ImageMatrix, k));
@@ -55,12 +55,17 @@ namespace ImageTemplate
                 // Color and display the segmented image
                 var coloredImage = ColorSegmentedRegions(ImageMatrix, ImageOperations.regions);
                 ImageOperations.DisplayImage(coloredImage, pictureBox2);
+                var message = new StringBuilder();
+                message.AppendLine($"Segmentation completed. Found {segmentCount} regions.");
+                message.AppendLine("Segment sizes:");
 
-                MessageBox.Show($"Segmentation completed. Found {segmentCount} regions.", "Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                foreach(int size in segmentSizes) 
+                foreach (int size in segmentSizes)
                 {
-                   MessageBox.Show($"[{size}] {size}");
+                    message.AppendLine($"[{size}] {size}");
                 }
+
+                // Show the combined message
+                MessageBox.Show(message.ToString(), "Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
