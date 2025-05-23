@@ -1,0 +1,22 @@
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\bin\Debug\ImageTemplate.exe.config
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\bin\Debug\ImageTemplate.exe
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\bin\Debug\ImageTemplate.pdb
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageSegmentation.csproj.AssemblyReference.cache
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageSegmentation.csproj.SuggestedBindingRedirects.cache
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageTemplate.MainForm.resources
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageTemplate.Properties.Resources.resources
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageSegmentation.csproj.GenerateResource.cache
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageSegmentation.csproj.CoreCompileInputs.cache
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageTemplate.exe
+D:\[COURSES]\Algorithms\[ALG'24.term2]\Staff\10 Project\RELEASE\[1] Image Encryption and Compression\Startup Code\[TEMPLATE] ImageEncryptCompress\ImageEncryptCompress\obj\Debug\ImageTemplate.pdb
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageSegmentation.csproj.AssemblyReference.cache
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageSegmentation.csproj.SuggestedBindingRedirects.cache
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageTemplate.MainForm.resources
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageTemplate.Properties.Resources.resources
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageSegmentation.csproj.GenerateResource.cache
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageSegmentation.csproj.CoreCompileInputs.cache
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageTemplate.exe
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\obj\Debug\ImageTemplate.pdb
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\bin\Debug\ImageTemplate.exe.config
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\bin\Debug\ImageTemplate.exe
+E:\FCIS-YEAR(3)\2nd term\STARTUP CODE-20250523T094409Z-1-001\STARTUP CODE\[TEMPLATE] ImageSegmentation\[TEMPLATE] ImageSegmentation\ImageSegmentation\bin\Debug\ImageTemplate.pdb
